@@ -1,11 +1,530 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>HAHA</title>
-    <link rel="icon" href="">
-  </head>
-  <body>
-    hello world!
-  </body>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記憶翻牌遊戲</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 { margin-bottom: 20px; color: #333; }
+
+        /* 1. 難度選擇的大方框 */
+        .menu-box {
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 12px;
+            padding: 40px;
+            width: 360px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .menu-title {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        /* 難度鈕 */
+        .menu-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            transition: background 0.2s;
+        }
+        .btn-easy   { background-color: #28a745; }
+        .btn-medium { background-color: #007bff; }
+        .btn-hard   { background-color: #ffc107; color: #333; }
+        .menu-btn:hover { filter: brightness(0.9); }
+
+        /* 2. 遊戲進行時的控制列 */
+        .status-bar {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* 功能按鈕樣式 */
+        .action-btn {
+            padding: 8px 16px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+            transition: all 0.2s;
+        }
+        .btn-hint { background-color: #17a2b8; }     
+        .btn-restart { background-color: #fd7e14; }  
+        .btn-giveup { background-color: #dc3545; }   
+        .back-btn { background-color: #6c757d; }     
+        .action-btn:hover:not(:disabled) { filter: brightness(0.9); }
+
+        /* 當提示按鈕被停用時的半透明鎖定樣式 */
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 遊戲畫面的網格 */
+        .game-board {
+            display: grid;
+            gap: 10px;
+            width: 100%;
+            perspective: 1000px;
+        }
+
+        /* 卡片本體與翻轉效果 */
+        .card {
+            aspect-ratio: 1;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .card.flipped { transform: rotateY(180deg); }
+        .card.matched { transform: rotateY(180deg); cursor: default; }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .card-back { background-color: #6c757d; color: white; border: 2px solid white; }
+        .card-front { background-color: white; transform: rotateY(180deg); border: 1px solid #ccc; }
+
+        /* 3. 通關成功的獎盃頁面大方框 */
+        .victory-box {
+            background: white;
+            border: 3px solid #ffc107;
+            border-radius: 16px;
+            padding: 40px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        /* --- 擬人化跳舞獎盃 --- */
+        .trophy-container {
+            position: relative;
+            width: 120px;
+            height: 140px;
+            margin-bottom: 5px;
+            animation: bodyBounce 0.6s infinite alternate ease-in-out;
+        }
+
+        .trophy-emoji {
+            font-size: 6.5rem;
+            line-height: 1;
+            position: relative;
+            z-index: 2;
+        }
+
+        .custom-eyes {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 3;
+        }
+
+        .custom-eye {
+            width: 11px;
+            height: 11px;
+            background: #111;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .custom-eye::after {
+            content: '';
+            position: absolute;
+            top: 1.5px;
+            left: 1.5px;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .css-hand {
+            position: absolute;
+            top: 42px; 
+            width: 25px;
+            height: 5px;
+            background-color: #333;
+            border-radius: 3px;
+            z-index: 1;
+        }
+
+        .css-hand-left {
+            left: -2px; 
+            transform-origin: right center;
+            animation: leftWave 0.3s infinite alternate ease-in-out;
+        }
+
+        .css-hand-right {
+            right: -2px; 
+            transform-origin: left center;
+            animation: rightWave 0.3s infinite alternate ease-in-out;
+        }
+
+        .css-legs {
+            position: absolute;
+            bottom: 12px; 
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 16px; 
+            z-index: 1;
+        }
+
+        .css-leg {
+            width: 7px;
+            height: 15px; 
+            background-color: #333;
+            border-radius: 3px;
+        }
+
+        .css-leg-left {
+            animation: leftStep 0.3s infinite alternate linear;
+            transform-origin: top center;
+        }
+
+        .css-leg-right {
+            animation: rightStep 0.3s infinite alternate linear;
+            animation-delay: 0.15s;
+            transform-origin: top center;
+        }
+
+        /* --- 動畫設定 --- */
+        @keyframes bodyBounce {
+            0% { transform: translateY(0) rotate(-2deg); }
+            100% { transform: translateY(-8px) rotate(2deg); }
+        }
+
+        @keyframes leftWave {
+            0% { transform: rotate(40deg); }
+            100% { transform: rotate(-40deg); }
+        }
+
+        @keyframes rightWave {
+            0% { transform: rotate(-40deg); }
+            100% { transform: rotate(40deg); }
+        }
+
+        @keyframes leftStep {
+            0% { transform: scaleY(1); }
+            100% { transform: scaleY(0.75) rotate(-5deg); }
+        }
+
+        @keyframes rightStep {
+            0% { transform: scaleY(1); }
+            100% { transform: scaleY(0.75) rotate(5deg); }
+        }
+
+        .victory-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .victory-score {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .victory-buttons {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .victory-buttons button {
+            flex: 1;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+        .btn-play-again { background-color: #28a745; }
+        .btn-go-home { background-color: #007bff; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <h1>記憶翻牌遊戲</h1>
+
+    <div class="menu-box" id="menu-page">
+        <div class="menu-title">請選擇遊戲難度</div>
+        <button class="menu-btn btn-easy" onclick="initGame('easy')">簡單 (2 × 2)</button>
+        <button class="menu-btn btn-medium" onclick="initGame('medium')">中等 (4 × 4)</button>
+        <button class="menu-btn btn-hard" onclick="initGame('hard')">困難 (6 × 6)</button>
+    </div>
+
+    <div id="game-page" class="hidden" style="text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <div class="status-bar">
+            翻牌次數：<span id="clicks-text">0</span> 次
+        </div>
+        <div class="control-panel">
+            <button class="action-btn btn-hint" id="hint-btn" onclick="triggerHint()">提示 (剩餘 2 次)</button>
+            <button class="action-btn btn-restart" onclick="restartGame()">重新開始</button>
+            <button class="action-btn btn-giveup" onclick="giveUpGame()">放棄</button>
+            <button class="action-btn back-btn" onclick="showMenu()">返回選單</button>
+        </div>
+        <div class="game-board" id="board"></div>
+    </div>
+
+    <div id="victory-page" class="hidden">
+        <div class="victory-box">
+            
+            <div class="trophy-container">
+                <div class="css-hand css-hand-left"></div>
+                <div class="trophy-emoji">🏆</div>
+                <div class="custom-eyes">
+                    <div class="custom-eye"></div>
+                    <div class="custom-eye"></div>
+                </div>
+                <div class="css-hand css-hand-right"></div>
+                <div class="css-legs">
+                    <div class="css-leg css-leg-left"></div>
+                    <div class="css-leg css-leg-right"></div>
+                </div>
+            </div>
+
+            <div class="victory-title">恭喜通關！</div>
+            <div class="victory-score">你非常優秀！本次總共翻牌：<strong id="final-clicks" style="color:#dc3545; font-size:1.4rem;">0</strong> 次</div>
+            
+            <div class="victory-buttons">
+                <button class="btn-play-again" onclick="restartGameDirectly()">再玩一次</button>
+                <button class="btn-go-home" onclick="showMenu()">返回主選單</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🎁 【卡片圖案倉庫】想換什麼圖案，直接改這裡的 Emoji 或文字即可！
+        const emojiPool = [
+            '🍎','🍌','🍇','🍉','🍓','🍒','🥑','🍍',
+            '🐶','🐱','🦁','🐯','🦊','🐻','🐼','🐨',
+            '⚽','🏀'
+        ];
+
+        const config = {
+            easy:   { size: 2, maxWidth: '240px', fontSize: '3rem' },
+            medium: { size: 4, maxWidth: '440px', fontSize: '2rem' },
+            hard:   { size: 6, maxWidth: '600px', fontSize: '1.5rem' }
+        };
+
+        let currentDifficulty = 'medium';
+        let currentCards = [];
+        let flippedCards = [];
+        let matchedCount = 0;
+        let clicks = 0;
+        let isLock = false;
+        let hintLeft = 2;
+
+        function initGame(difficulty) {
+            currentDifficulty = difficulty;
+            const setting = config[difficulty];
+            const totalCards = setting.size * setting.size;
+            const pairsNeeded = totalCards / 2;
+
+            document.getElementById('menu-page').classList.add('hidden');
+            document.getElementById('victory-page').classList.add('hidden');
+            document.getElementById('game-page').classList.remove('hidden');
+
+            clicks = 0;
+            matchedCount = 0;
+            flippedCards = [];
+            isLock = false;
+            document.getElementById('clicks-text').innerText = clicks;
+
+            hintLeft = 2;
+            const hintBtn = document.getElementById('hint-btn');
+            hintBtn.innerText = `提示 (剩餘 ${hintLeft} 次)`;
+            hintBtn.disabled = false;
+
+            let selectedItems = emojiPool.slice(0, pairsNeeded);
+            currentCards = [...selectedItems, ...selectedItems];
+            currentCards.sort(() => Math.random() - 0.5);
+
+            const board = document.getElementById('board');
+            board.style.gridTemplateColumns = `repeat(${setting.size}, 1fr)`;
+            board.style.maxWidth = setting.maxWidth;
+            board.innerHTML = '';
+
+            currentCards.forEach((emoji) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.value = emoji;
+
+                const back = document.createElement('div');
+                back.classList.add('card-face', 'card-back');
+                back.style.fontSize = setting.fontSize;
+                back.innerText = '？';
+
+                const front = document.createElement('div');
+                front.classList.add('card-face', 'card-front');
+                front.style.fontSize = setting.fontSize;
+                front.innerText = emoji;
+
+                card.appendChild(back);
+                card.appendChild(front);
+                card.addEventListener('click', flipCard);
+                board.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (isLock) return;
+            if (this.classList.contains('flipped') || this.classList.contains('matched')) return;
+
+            this.classList.add('flipped');
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                clicks++;
+                document.getElementById('clicks-text').innerText = clicks;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+
+            if (card1.dataset.value === card2.dataset.value) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedCount += 2;
+                flippedCards = [];
+
+                if (matchedCount === currentCards.length) {
+                    setTimeout(() => {
+                        document.getElementById('game-page').classList.add('hidden');
+                        document.getElementById('final-clicks').innerText = clicks;
+                        document.getElementById('victory-page').classList.remove('hidden');
+                    }, 500);
+                }
+            } else {
+                isLock = true;
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                    isLock = false;
+                }, 800);
+            }
+        }
+
+        function triggerHint() {
+            if (isLock || hintLeft <= 0) return;
+            
+            isLock = true;
+            hintLeft--; 
+            
+            const hintBtn = document.getElementById('hint-btn');
+            hintBtn.innerText = `提示 (剩餘 ${hintLeft} 次)`;
+
+            if (hintLeft === 0) {
+                hintBtn.disabled = true;
+            }
+            
+            clicks++;
+            document.getElementById('clicks-text').innerText = clicks;
+
+            const allCards = document.querySelectorAll('.card');
+            allCards.forEach(card => {
+                if (!card.classList.contains('matched')) {
+                    card.classList.add('flipped');
+                }
+            });
+
+            setTimeout(() => {
+                allCards.forEach(card => {
+                    if (!card.classList.contains('matched')) {
+                        card.classList.remove('flipped');
+                    }
+                });
+                flippedCards = [];
+                isLock = false;
+            }, 800);
+        }
+
+        function restartGame() {
+            if (confirm('確定要重新開始這一局嗎？')) {
+                initGame(currentDifficulty);
+            }
+        }
+
+        function restartGameDirectly() {
+            initGame(currentDifficulty);
+        }
+
+        function giveUpGame() {
+            if (confirm('確定要放棄嗎？將會顯示完整答案。')) {
+                isLock = true;
+                const allCards = document.querySelectorAll('.card');
+                allCards.forEach(card => card.classList.add('flipped'));
+                
+                setTimeout(() => {
+                    showMenu();
+                }, 1500);
+            }
+        }
+
+        function showMenu() {
+            document.getElementById('game-page').classList.add('hidden');
+            document.getElementById('victory-page').classList.add('hidden');
+            document.getElementById('menu-page').classList.remove('hidden');
+        }
+    </script>
+</body>
 </html>
