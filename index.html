@@ -3,527 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>記憶翻牌遊戲</title>
+    <title>學生的手機超渡法會</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
         body {
-            background-color: #f0f2f5;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
+            margin: 0; padding: 0;
+            background-color: #eae6df; /* 佛系禪意米色 */
+            color: #3e3a36;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; overflow: hidden;
+            transition: background-color 0.8s ease, color 0.8s ease;
         }
 
-        h1 { margin-bottom: 20px; color: #333; }
-
-        /* 1. 難度選擇的大方框 */
-        .menu-box {
-            background: white;
-            border: 2px solid #ccc;
-            border-radius: 12px;
-            padding: 40px;
-            width: 360px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        /* ─── 第一頁：摸頭祈福區 ─── */
+        #page-one {
+            display: flex; flex-direction: column; align-items: center; text-align: center;
         }
-
-        .menu-title {
-            text-align: center;
-            font-size: 1.4rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #555;
+        h1 { font-size: 26px; margin-bottom: 5px; color: #8c6239; }
+        .hint { font-size: 14px; color: #777; margin-bottom: 30px; }
+        
+        .monk-head-area {
+            position: relative; width: 220px; height: 220px;
+            cursor: pointer; user-select: none;
+            transition: transform 0.05s ease;
         }
-
-        /* 難度鈕 */
-        .menu-btn {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            color: white;
-            transition: background 0.2s;
-        }
-        .btn-easy   { background-color: #28a745; }
-        .btn-medium { background-color: #007bff; }
-        .btn-hard   { background-color: #ffc107; color: #333; }
-        .menu-btn:hover { filter: brightness(0.9); }
-
-        /* 2. 遊戲進行時的控制列 */
-        .status-bar {
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #444;
-        }
-
-        .control-panel {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        /* 功能按鈕樣式 */
-        .action-btn {
-            padding: 8px 16px;
-            font-size: 0.95rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            color: white;
-            transition: all 0.2s;
-        }
-        .btn-hint { background-color: #17a2b8; }     
-        .btn-restart { background-color: #fd7e14; }  
-        .btn-giveup { background-color: #dc3545; }   
-        .back-btn { background-color: #6c757d; }     
-        .action-btn:hover:not(:disabled) { filter: brightness(0.9); }
-
-        /* 當提示按鈕被停用時的半透明鎖定樣式 */
-        .action-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* 遊戲畫面的網格 */
-        .game-board {
-            display: grid;
-            gap: 10px;
-            width: 100%;
-            perspective: 1000px;
-        }
-
-        /* 卡片本體與翻轉效果 */
-        .card {
-            aspect-ratio: 1;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.3s;
-            cursor: pointer;
-        }
-        .card.flipped { transform: rotateY(180deg); }
-        .card.matched { transform: rotateY(180deg); cursor: default; }
-
-        .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        }
-        .card-back { background-color: #6c757d; color: white; border: 2px solid white; }
-        .card-front { background-color: white; transform: rotateY(180deg); border: 1px solid #ccc; }
-
-        /* 3. 通關成功的獎盃頁面大方框 */
-        .victory-box {
-            background: white;
-            border: 3px solid #ffc107;
-            border-radius: 16px;
-            padding: 40px;
-            width: 400px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 25px;
-        }
-
-        /* --- 擬人化跳舞獎盃 --- */
-        .trophy-container {
-            position: relative;
-            width: 120px;
-            height: 140px;
-            margin-bottom: 5px;
-            animation: bodyBounce 0.6s infinite alternate ease-in-out;
-        }
-
-        .trophy-emoji {
-            font-size: 6.5rem;
-            line-height: 1;
-            position: relative;
-            z-index: 2;
-        }
-
-        .custom-eyes {
-            position: absolute;
-            top: 25px;
-            left: 50%;
+        .monk-head-area:active { transform: scale(0.95); }
+        .monk-base { font-size: 160px; line-height: 220px; text-align: center; }
+        
+        .buddha-hand {
+            position: absolute; top: -10px; left: 50%;
             transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
+            font-size: 90px; opacity: 0; pointer-events: none; z-index: 10;
+        }
+
+        .head-shine {
+            position: absolute; top: 20px; left: 50%;
+            transform: translateX(-50%);
+            width: 80px; height: 50px;
+            background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 75%);
+            border-radius: 50%; opacity: 0; pointer-events: none;
+        }
+
+        #flash-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #ffffff; opacity: 0; pointer-events: none;
+            z-index: 999; transition: opacity 0.4s ease;
+        }
+
+        /* ─── 第二頁：和尚開示區 ─── */
+        #page-two {
+            display: none; flex-direction: column; align-items: center; text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px; border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(139, 126, 116, 0.15);
+            max-width: 85%; width: 450px; border: 1px solid #e2dad0;
+            z-index: 20;
+        }
+        
+        .monk-container {
+            position: relative; width: 200px; height: 220px; margin-bottom: 20px;
+            animation: floatAnimation 3s ease-in-out infinite;
+        }
+        .monk-head-avatar { font-size: 80px; position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 5; }
+        .monk-neck { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); width: 32px; height: 25px; background-color: #ffcb4c; z-index: 3; border-radius: 0 0 10px 10px; }
+        .monk-kasaya-body {
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 140px; height: 120px; background-color: #b91c1c;
+            background-image: linear-gradient(rgba(245, 158, 11, 0.4) 2px, transparent 2px), linear-gradient(90deg, rgba(245, 158, 11, 0.4) 2px, transparent 2px);
+            background-size: 25px 25px; border-radius: 40px 40px 10px 10px; box-shadow: inset -20px 0 30px rgba(0,0,0,0.2);
+            clip-path: polygon(35% 0%, 100% 40%, 100% 100%, 0% 100%, 0% 25%); z-index: 4;
+        }
+        .monk-inner-robe { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 140px; height: 120px; background-color: #a16207; border-radius: 40px 40px 10px 10px; z-index: 2; }
+        .monk-alms-bowl { font-size: 50px; position: absolute; bottom: 45px; left: 55%; z-index: 6; animation: bowlShake 1.5s ease-in-out infinite; }
+
+        #zen-quote { font-size: 18px; line-height: 1.8; font-weight: bold; margin-bottom: 25px; min-height: 80px; display: flex; align-items: center; justify-content: center; color: #5c4e43; padding: 0 10px; }
+        
+        .buddha-btn { background-color: #d97706; color: white; border: none; padding: 14px 30px; font-size: 17px; border-radius: 40px; cursor: pointer; font-weight: bold; width: 85%; box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4); animation: pulseGlow 2s infinite; transition: all 0.1s; }
+        .buddha-btn:active { transform: scale(0.95); }
+        
+        .help-btn { background-color: transparent; color: #b91c1c; border: 1px solid #b91c1c; padding: 12px 30px; font-size: 15px; border-radius: 40px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 85%; transition: all 0.1s; }
+        .help-btn:active { transform: scale(0.95); background-color: rgba(185, 28, 28, 0.05); }
+        
+        .merit-text { background: none; border: none; color: #b59273; margin-top: 15px; cursor: pointer; font-size: 13px; font-weight: bold;}
+
+        /* ─── 第三頁：釋迦牟尼佛顯靈區（神聖莊嚴版） ─── */
+        #page-three {
+            display: none; flex-direction: column; align-items: center; text-align: center;
+            z-index: 20; animation: fadeIn 1s ease-out forwards;
+        }
+
+        .buddha-light-container {
+            position: relative; width: 340px; height: 340px;
+            display: flex; justify-content: center; align-items: center; margin-bottom: 20px;
+        }
+        
+        /* 萬丈圓滿放射佛光 */
+        .buddha-aura {
+            position: absolute; width: 360px; height: 360px;
+            background: repeating-conic-gradient(from 0deg, rgba(255,236,139,0) 0deg 12deg, rgba(255,215,0,0.55) 12deg 24deg);
+            border-radius: 50%; z-index: 1;
+            animation: rotateAura 30s linear infinite;
+            mask-image: radial-gradient(circle, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 75%);
+            -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 75%);
+        }
+
+        /* ─── 釋迦牟尼佛純 CSS 金身 ─── */
+        .buddha-god {
+            position: relative; z-index: 5;
+            width: 180px; height: 200px;
+            animation: floatAnimation 4s ease-in-out infinite;
+        }
+
+        /* 頂上高肉髻 */
+        .buddha-ushnisha {
+            position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+            width: 32px; height: 22px;
+            background-color: #1e293b; /* 紺青螺髮色 */
+            border-radius: 50% 50% 20% 20%;
+            box-shadow: 0 -2px 10px rgba(255,215,0,0.6);
+            z-index: 7;
+        }
+
+        /* 紺青螺髮頭部 */
+        .buddha-hair-shaka {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 76px; height: 50px;
+            background-color: #1e293b;
+            border-radius: 40px 40px 10px 10px;
+            z-index: 6;
+        }
+
+        /* 慈悲佛面與雙耳垂肩 */
+        .buddha-face-shaka {
+            position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
+            width: 70px; height: 75px;
+            background-color: #ffe042; /* 金身 */
+            border-radius: 35px 35px 45px 45px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 8;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-size: 38px; line-height: 1;
+        }
+
+        /* 額上眉間白毫 */
+        .buddha-urna {
+            position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 6px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            z-index: 9;
+            box-shadow: 0 0 8px #ffffff, 0 0 15px #fff;
+        }
+
+        /* 大垂耳（三十二相之一） */
+        .buddha-ears {
+            position: absolute; top: 38px; left: 50%; transform: translateX(-50%);
+            width: 88px; height: 45px;
+            background-color: #ffe042;
+            border-radius: 20px/40px;
+            z-index: 5;
+        }
+
+        /* 偏袒右肩赤色袈裟與打坐金身 */
+        .buddha-body-shaka {
+            position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 100px;
+            background: linear-gradient(115deg, #b91c1c 60%, #ffe042 61%); /* 左邊赤色袈裟，右邊露出偏袒金身 */
+            border-radius: 45px 45px 30px 30px;
+            z-index: 6;
+            clip-path: polygon(15% 0%, 85% 0%, 100% 75%, 85% 100%, 15% 100%, 0% 75%);
+            box-shadow: inset 0 12px 20px rgba(255,255,255,0.3);
+        }
+
+        /* 說法印/施無畏手勢 (Emoji裝飾手法) */
+        .buddha-hands {
+            position: absolute; bottom: 45px; width: 100%;
+            display: flex; justify-content: space-between; padding: 0 10px;
+            box-sizing: border-box; z-index: 9; font-size: 24px; opacity: 0.9;
+        }
+
+        /* 釋尊 千葉寶蓮華座 */
+        .buddha-lotus-shaka {
+            position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+            width: 175px; height: 32px;
+            background: repeating-linear-gradient(90deg, #dc2626, #ef4444 20px, #b91c1c 40px);
+            border-radius: 15px 15px 40px 40px;
+            z-index: 4;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+        }
+        .buddha-lotus-sub {
+            position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%);
+            width: 140px; height: 15px;
+            background-color: #991b1b;
+            border-radius: 5px 5px 20px 20px;
             z-index: 3;
         }
 
-        .custom-eye {
-            width: 11px;
-            height: 11px;
-            background: #111;
-            border-radius: 50%;
-            position: relative;
-        }
+        .buddha-title { font-size: 28px; color: #f59e0b; font-weight: bold; text-shadow: 0 0 15px rgba(245,158,11,0.6); margin: 10px 0; }
+        .buddha-bless { font-size: 18px; line-height: 1.8; color: #fff; max-width: 320px; margin-bottom: 30px; font-weight: bold; }
+        .return-btn { background-color: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 12px 30px; font-size: 15px; border-radius: 40px; cursor: pointer; transition: background 0.2s; }
+        .return-btn:hover { background-color: rgba(255,255,255,0.3); }
 
-        .custom-eye::after {
-            content: '';
-            position: absolute;
-            top: 1.5px;
-            left: 1.5px;
-            width: 4px;
-            height: 4px;
-            background: white;
-            border-radius: 50%;
-        }
-
-        .css-hand {
-            position: absolute;
-            top: 42px; 
-            width: 25px;
-            height: 5px;
-            background-color: #333;
-            border-radius: 3px;
-            z-index: 1;
-        }
-
-        .css-hand-left {
-            left: -2px; 
-            transform-origin: right center;
-            animation: leftWave 0.3s infinite alternate ease-in-out;
-        }
-
-        .css-hand-right {
-            right: -2px; 
-            transform-origin: left center;
-            animation: rightWave 0.3s infinite alternate ease-in-out;
-        }
-
-        .css-legs {
-            position: absolute;
-            bottom: 12px; 
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 16px; 
-            z-index: 1;
-        }
-
-        .css-leg {
-            width: 7px;
-            height: 15px; 
-            background-color: #333;
-            border-radius: 3px;
-        }
-
-        .css-leg-left {
-            animation: leftStep 0.3s infinite alternate linear;
-            transform-origin: top center;
-        }
-
-        .css-leg-right {
-            animation: rightStep 0.3s infinite alternate linear;
-            animation-delay: 0.15s;
-            transform-origin: top center;
-        }
-
-        /* --- 動畫設定 --- */
-        @keyframes bodyBounce {
-            0% { transform: translateY(0) rotate(-2deg); }
-            100% { transform: translateY(-8px) rotate(2deg); }
-        }
-
-        @keyframes leftWave {
-            0% { transform: rotate(40deg); }
-            100% { transform: rotate(-40deg); }
-        }
-
-        @keyframes rightWave {
-            0% { transform: rotate(-40deg); }
-            100% { transform: rotate(40deg); }
-        }
-
-        @keyframes leftStep {
-            0% { transform: scaleY(1); }
-            100% { transform: scaleY(0.75) rotate(-5deg); }
-        }
-
-        @keyframes rightStep {
-            0% { transform: scaleY(1); }
-            100% { transform: scaleY(0.75) rotate(5deg); }
-        }
-
-        .victory-title {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #28a745;
-        }
-
-        .victory-score {
-            font-size: 1.2rem;
-            color: #555;
-            margin-bottom: 10px;
-        }
-
-        .victory-buttons {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-        }
-
-        .victory-buttons button {
-            flex: 1;
-            padding: 12px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            color: white;
-        }
-        .btn-play-again { background-color: #28a745; }
-        .btn-go-home { background-color: #007bff; }
-
-        .hidden { display: none !important; }
+        /* ─── 動畫區 ─── */
+        @keyframes floatAnimation { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+        @keyframes bowlShake { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(6deg) translateY(-3px); } }
+        @keyframes rotateAura { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4); } 50% { box-shadow: 0 6px 35px rgba(245, 158, 11, 0.8); } }
     </style>
 </head>
 <body>
 
-    <h1>記憶翻牌遊戲</h1>
+    <div id="flash-screen"></div>
 
-    <div class="menu-box" id="menu-page">
-        <div class="menu-title">請選擇遊戲難度</div>
-        <button class="menu-btn btn-easy" onclick="initGame('easy')">簡單 (2 × 2)</button>
-        <button class="menu-btn btn-medium" onclick="initGame('medium')">中等 (4 × 4)</button>
-        <button class="menu-btn btn-hard" onclick="initGame('hard')">困難 (6 × 6)</button>
+    <!-- 第一頁：摸頭祈福區 -->
+    <div id="page-one">
+        <h1>📿 學生的手機超渡法會 📿</h1>
+        <p class="hint">【點擊和尚的光頭，積攢拋棄手機的無上功德】</p>
+        
+        <div class="monk-head-area" onmousedown="clickHead()" ontouchstart="clickHead()">
+            <div class="monk-base">👨‍🦲</div>
+            <div class="buddha-hand" id="hand">✋</div>
+            <div class="head-shine" id="shine"></div>
+        </div>
+        <p style="color: #8c6239; font-weight: bold; margin-top: 20px;">頭頂反光度：<span id="shine-percent">0</span>%</p>
     </div>
 
-    <div id="game-page" class="hidden" style="text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <div class="status-bar">
-            翻牌次數：<span id="clicks-text">0</span> 次
+    <!-- 第二頁：和尚開示區 -->
+    <div id="page-two">
+        <div class="monk-container">
+            <div class="monk-inner-robe"></div>
+            <div class="monk-neck"></div>
+            <div class="monk-kasaya-body"></div>
+            <div class="monk-head-avatar">👨‍🦲</div>
+            <div class="monk-alms-bowl">🥣</div>
         </div>
-        <div class="control-panel">
-            <button class="action-btn btn-hint" id="hint-btn" onclick="triggerHint()">提示 (剩餘 2 次)</button>
-            <button class="action-btn btn-restart" onclick="restartGame()">重新開始</button>
-            <button class="action-btn btn-giveup" onclick="giveUpGame()">放棄</button>
-            <button class="action-btn back-btn" onclick="showMenu()">返回選單</button>
-        </div>
-        <div class="game-board" id="board"></div>
+
+        <h2 style="color: #8c6239; margin: 0 0 15px 0; font-size: 22px;">法師顯靈．給予開示</h2>
+        
+        <div id="zen-quote">開示載入中...</div>
+        
+        <button class="buddha-btn" onclick="showBuddha()">🧘‍♂️ 我把手機放下了！</button>
+        <button class="help-btn" onclick="retry()">😭 我丟不掉……請法師再救我一次！</button>
+        
+        <button class="merit-text" onclick="copyZen()">🙏 複製開示，同霑法喜</button>
     </div>
 
-    <div id="victory-page" class="hidden">
-        <div class="victory-box">
+    <!-- 第三頁：釋迦牟尼佛顯靈區 -->
+    <div id="page-three">
+        <div class="buddha-light-container">
+            <div class="buddha-aura"></div> <!-- 圓滿旋轉佛光 -->
             
-            <div class="trophy-container">
-                <div class="css-hand css-hand-left"></div>
-                <div class="trophy-emoji">🏆</div>
-                <div class="custom-eyes">
-                    <div class="custom-eye"></div>
-                    <div class="custom-eye"></div>
-                </div>
-                <div class="css-hand css-hand-right"></div>
-                <div class="css-legs">
-                    <div class="css-leg css-leg-left"></div>
-                    <div class="css-leg css-leg-right"></div>
-                </div>
-            </div>
-
-            <div class="victory-title">恭喜通關！</div>
-            <div class="victory-score">你非常優秀！本次總共翻牌：<strong id="final-clicks" style="color:#dc3545; font-size:1.4rem;">0</strong> 次</div>
-            
-            <div class="victory-buttons">
-                <button class="btn-play-again" onclick="restartGameDirectly()">再玩一次</button>
-                <button class="btn-go-home" onclick="showMenu()">返回主選單</button>
+            <!-- 釋迦牟尼佛金身像 -->
+            <div class="buddha-god">
+                <div class="buddha-ushnisha"></div>    <!-- 頂上肉髻 -->
+                <div class="buddha-hair-shaka"></div>   <!-- 紺青螺髮 -->
+                <div class="buddha-ears"></div>         <!-- 雙耳垂肩 -->
+                <div class="buddha-urna"></div>         <!-- 眉間白毫 -->
+                <div class="buddha-face-shaka">😌</div>  <!-- 慈悲法相 -->
+                <div class="buddha-body-shaka">         <!-- 偏袒右肩袈裟金身 -->
+                    <div class="buddha-hands">
+                        <span>🫵</span> <!-- 左手與願印示意 -->
+                        <span>✋</span> <!-- 右手施無畏印示意 -->
+                    </div>
+                </div>  
+                <div class="buddha-lotus-shaka"></div> <!-- 千葉蓮花座上層 -->
+                <div class="buddha-lotus-sub"></div>   <!-- 蓮花座下層 -->
             </div>
         </div>
+
+        <div class="buddha-title">本師釋迦牟尼佛顯靈</div>
+        <div class="buddha-bless" id="buddha-text">善哉善哉，你已放下魔障。智慧齒輪開始轉動，今日課業必將證得圓滿大正果！</div>
+        
+        <button class="return-btn" onclick="backToStart()">重回人間（再滑一下）</button>
     </div>
 
     <script>
-        // 🎁 【卡片圖案倉庫】想換什麼圖案，直接改這裡的 Emoji 或文字即可！
-        const emojiPool = [
-            '🍎','🍌','🍇','🍉','🍓','🍒','🥑','🍍',
-            '🐶','🐱','🦁','🐯','🦊','🐻','🐼','🐨',
-            '⚽','🏀'
+        let shineProgress = 0;
+        let isTransitioning = false;
+        
+        const handElement = document.getElementById('hand');
+        const shineElement = document.getElementById('shine');
+        const percentText = document.getElementById('shine-percent');
+        const flashScreen = document.getElementById('flash-screen');
+        const pageOne = document.getElementById('page-one');
+        const pageTwo = document.getElementById('page-two');
+        const pageThree = document.getElementById('page-three');
+        const quoteBox = document.getElementById('zen-quote');
+
+        const zenQuotes = [
+            "再看下去，眼睛就要業障重啦！閉上眼，假的！全都是假的！",
+            "放下手機，立地成佛。施主，螢幕裡的綠色不是大自然，那是你期末考成績單的顏色。",
+            "善哉善哉，你剛剛滑過的那條 threads，並不會增加你的學分。施主，回頭是岸，岸上是你的微積分講義。",
+            "你以為你在跟手機溫存？不，那是五吋吸魂怪在吸取你陽壽的恐怖現場。阿彌陀佛，快放手！",
+            "施主，你今天的手機使用時間已經可以超渡三輩子的冤親債主了。聽老衲一句勸，該去翻開課本了。",
+            "通知列的紅點不是佛光，那是誘惑你墮入重修地獄的紅蓮業火。快快熄滅它！",
+            "把手機翻面，就是你對這張課桌椅最大的慈悲。善哉，你的肝與教授都會感謝你。",
+            "貪、嗔、癡、滑。施主，你的課業已經進入涅槃狀態（快完蛋了），還不快放下手機拯救蒼生！",
+            "施主，看朋友圈別人過得多精彩是沒用的。那是幻覺！眼睛業障重！只有你沒寫完的作業是真的！",
+            "施主，打開 Threads 看到滿滿的廢文，假的！暫時關掉它，眼睛業障重啊！",
+            "你以為跟你在脆（Threads）上互動的是真心朋友？假的！那都是想騙你忘記明天有期末考的妖魔鬼怪！",
+            "早八的課你可以睡過頭，摸手機的網速你倒是挺在乎。阿彌陀佛，施主，你的學分正在地獄裡哭泣。",
+            "放下手機吧，期末考的時候 ChatGPT 也幫不了你的腦袋，唯有立地看書才能超渡你的當代危機。",
+            "善哉善哉，你以為在分組報告裡當伸手牌很爽？小心你的名字明天就被組員從報告中『超渡』不留痕跡！",
+            "不要再用手機查『如何一小時抱佛腳』了，佛祖今天很忙，沒空讓你抱，快去翻講義！",
+            "手機螢幕上的通知紅點，就像重修成績單上的滿江紅. 施主，提早熄滅它，就是對人生最大的慈悲。",
+            "你一直滑限時動態，別人是在出國度假，你是在為重修費打工，這就是因果報應，快放手！",
+            "把手機扣在課桌椅上，心不隨藍光波動，這節課你便能證得『不被當掉』的無上正果。",
+            "施主，放下那支手機。你昨晚熬夜滑到三點的黑眼圈，已經比地獄的業火還要深邃了。",
+            "施主，你現在滑手機一小時，明年學測查成績時，你就要多流淚一整年。阿彌陀佛，快放下手機，那不是重點，黑本子才是你的歸宿。",
+            "你以為在 Threads 上刷到『學測倒數』的集氣文就有保佑？假的！那都是別人的功德。你的功德在於把手機關機，立地多寫兩題模擬題！",
+            "善哉善哉，手機裡的短影音刷得再滿，也補不滿你級分的缺口。快把手機翻面，否則明年你只能去廟裡超渡你死去的志願序了。"
         ];
 
-        const config = {
-            easy:   { size: 2, maxWidth: '240px', fontSize: '3rem' },
-            medium: { size: 4, maxWidth: '440px', fontSize: '2rem' },
-            hard:   { size: 6, maxWidth: '600px', fontSize: '1.5rem' }
-        };
-
-        let currentDifficulty = 'medium';
-        let currentCards = [];
-        let flippedCards = [];
-        let matchedCount = 0;
-        let clicks = 0;
-        let isLock = false;
-        let hintLeft = 2;
-
-        function initGame(difficulty) {
-            currentDifficulty = difficulty;
-            const setting = config[difficulty];
-            const totalCards = setting.size * setting.size;
-            const pairsNeeded = totalCards / 2;
-
-            document.getElementById('menu-page').classList.add('hidden');
-            document.getElementById('victory-page').classList.add('hidden');
-            document.getElementById('game-page').classList.remove('hidden');
-
-            clicks = 0;
-            matchedCount = 0;
-            flippedCards = [];
-            isLock = false;
-            document.getElementById('clicks-text').innerText = clicks;
-
-            hintLeft = 2;
-            const hintBtn = document.getElementById('hint-btn');
-            hintBtn.innerText = `提示 (剩餘 ${hintLeft} 次)`;
-            hintBtn.disabled = false;
-
-            let selectedItems = emojiPool.slice(0, pairsNeeded);
-            currentCards = [...selectedItems, ...selectedItems];
-            currentCards.sort(() => Math.random() - 0.5);
-
-            const board = document.getElementById('board');
-            board.style.gridTemplateColumns = `repeat(${setting.size}, 1fr)`;
-            board.style.maxWidth = setting.maxWidth;
-            board.innerHTML = '';
-
-            currentCards.forEach((emoji) => {
-                const card = document.createElement('div');
-                card.classList.add('card');
-                card.dataset.value = emoji;
-
-                const back = document.createElement('div');
-                back.classList.add('card-face', 'card-back');
-                back.style.fontSize = setting.fontSize;
-                back.innerText = '？';
-
-                const front = document.createElement('div');
-                front.classList.add('card-face', 'card-front');
-                front.style.fontSize = setting.fontSize;
-                front.innerText = emoji;
-
-                card.appendChild(back);
-                card.appendChild(front);
-                card.addEventListener('click', flipCard);
-                board.appendChild(card);
-            });
-        }
-
-        function flipCard() {
-            if (isLock) return;
-            if (this.classList.contains('flipped') || this.classList.contains('matched')) return;
-
-            this.classList.add('flipped');
-            flippedCards.push(this);
-
-            if (flippedCards.length === 2) {
-                clicks++;
-                document.getElementById('clicks-text').innerText = clicks;
-                checkMatch();
-            }
-        }
-
-        function checkMatch() {
-            const [card1, card2] = flippedCards;
-
-            if (card1.dataset.value === card2.dataset.value) {
-                card1.classList.add('matched');
-                card2.classList.add('matched');
-                matchedCount += 2;
-                flippedCards = [];
-
-                if (matchedCount === currentCards.length) {
-                    setTimeout(() => {
-                        document.getElementById('game-page').classList.add('hidden');
-                        document.getElementById('final-clicks').innerText = clicks;
-                        document.getElementById('victory-page').classList.remove('hidden');
-                    }, 500);
-                }
-            } else {
-                isLock = true;
-                setTimeout(() => {
-                    card1.classList.remove('flipped');
-                    card2.classList.remove('flipped');
-                    flippedCards = [];
-                    isLock = false;
-                }, 800);
-            }
-        }
-
-        function triggerHint() {
-            if (isLock || hintLeft <= 0) return;
-            
-            isLock = true;
-            hintLeft--; 
-            
-            const hintBtn = document.getElementById('hint-btn');
-            hintBtn.innerText = `提示 (剩餘 ${hintLeft} 次)`;
-
-            if (hintLeft === 0) {
-                hintBtn.disabled = true;
-            }
-            
-            clicks++;
-            document.getElementById('clicks-text').innerText = clicks;
-
-            const allCards = document.querySelectorAll('.card');
-            allCards.forEach(card => {
-                if (!card.classList.contains('matched')) {
-                    card.classList.add('flipped');
-                }
-            });
+        function clickHead() {
+            if (isTransitioning) return;
+            handElement.style.opacity = "1";
+            shineProgress += 10; 
+            if (shineProgress > 100) shineProgress = 100;
+            percentText.innerText = shineProgress;
 
             setTimeout(() => {
-                allCards.forEach(card => {
-                    if (!card.classList.contains('matched')) {
-                        card.classList.remove('flipped');
-                    }
-                });
-                flippedCards = [];
-                isLock = false;
-            }, 800);
+                handElement.style.opacity = "0";
+                shineElement.style.opacity = shineProgress / 100;
+                if (shineProgress >= 100) {
+                    isTransitioning = true;
+                    triggerSuperDuperShine();
+                }
+            }, 120);
         }
 
-        function restartGame() {
-            if (confirm('確定要重新開始這一局嗎？')) {
-                initGame(currentDifficulty);
-            }
+        function triggerSuperDuperShine() {
+            flashScreen.style.opacity = 1;
+            setTimeout(() => {
+                pageOne.style.display = 'none';
+                pageTwo.style.display = 'flex';
+                document.body.style.backgroundColor = '#f2efea';
+                const index = Math.floor(Math.random() * zenQuotes.length);
+                quoteBox.innerText = zenQuotes[index];
+            }, 400);
+            setTimeout(() => { flashScreen.style.opacity = 0; }, 800);
         }
 
-        function restartGameDirectly() {
-            initGame(currentDifficulty);
+        function showBuddha() {
+            flashScreen.style.opacity = 1;
+            setTimeout(() => {
+                pageTwo.style.display = 'none';
+                pageThree.style.display = 'flex';
+                document.body.style.backgroundColor = '#0b0f19';
+                document.body.style.color = '#ffffff';
+            }, 400);
+            setTimeout(() => { flashScreen.style.opacity = 0; }, 800);
         }
 
-        function giveUpGame() {
-            if (confirm('確定要放棄嗎？將會顯示完整答案。')) {
-                isLock = true;
-                const allCards = document.querySelectorAll('.card');
-                allCards.forEach(card => card.classList.add('flipped'));
-                
-                setTimeout(() => {
-                    showMenu();
-                }, 1500);
-            }
+        function retry() {
+            shineProgress = 0; isTransitioning = false;
+            shineElement.style.opacity = 0; percentText.innerText = "0";
+            document.body.style.backgroundColor = '#eae6df';
+            document.body.style.color = '#3e3a36';
+            pageTwo.style.display = 'none'; pageOne.style.display = 'flex';
         }
 
-        function showMenu() {
-            document.getElementById('game-page').classList.add('hidden');
-            document.getElementById('victory-page').classList.add('hidden');
-            document.getElementById('menu-page').classList.remove('hidden');
+        function backToStart() {
+            pageThree.style.display = 'none';
+            retry();
+        }
+
+        function copyZen() {
+            navigator.clipboard.writeText(quoteBox.innerText);
+            alert("開示已複製！快去發限動，超渡身邊業障重的同學吧 🙏");
         }
     </script>
 </body>
